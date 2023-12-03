@@ -1,11 +1,101 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int           @id @default(autoincrement())
+  uuid      String        @default(uuid())
+  firstname String
+  lastname  String?
+  username  String?
+  gender    String
+
+  address   UserAddress[]
+  productReviews ProductReviews[]
+  transactions   Transactions[]
+  @@map("tbl_users")
+}
+
+model UserAddress {
+  id     Int @id @default(autoincrement())
+  userId Int
+
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  state        String
+  country      String
+  postalCode   String
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Product {
+  id          Int     @id @default(autoincrement())
+  puid        String  @default(uuid())
+  name        String
+  description String?
+  brandId     Int?
+
+  brand        ProductBrand?    @relation(fields: [brandId], references: [id])
+  reviews      ProductReviews[]
+  Transactions Transactions[]
+  ProductPrice ProductPrice[]
+
+  @@map("tbl_products")
+}
+
+model ProductBrand {
+  id          Int       @id @default(autoincrement())
+  bid         String    @default(uuid())
+  name        String
+  description String?
+  products    Product[]
+
+  @@map("tbl_product_brand")
+}
+
+model ProductReviews {
+  id         Int      @id @default(autoincrement())
+  reviewId   String   @default(uuid())
+  userId     Int
+  productId  Int
+  rating     Float
+  text       String?
+  created_at DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("tbl_product_reviews")
+}
+
+model Transactions {
+  id        Int    @id @default(autoincrement())
+  tuid      String @default(uuid())
+  productId Int
+  userId    Int
+  quantity  Int
+
+  user    User    @relation(fields: [userId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("tbl_transactions")
+}
+
+model ProductPrice {
+  id             Int      @id @default(autoincrement())
+  prid           String   @default(uuid())
+  price          Float
+  productId      Int
+  effective_date DateTime
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("tbl_product_prices")
 }
